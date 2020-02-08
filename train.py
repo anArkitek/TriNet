@@ -30,7 +30,7 @@ def parse_args():
     parser.add_argument("--save_dir", dest="save_dir", help="directory path of saving results",
                         default='./results', type=str)
     parser.add_argument("--train_data", dest="train_data", help="directory path of train dataset",
-                        default="./", type=str)
+                        default="../3Dof-Object-Pose-Estimation-master/", type=str)
     parser.add_argument("--valid_data", dest="valid_data", help="directory path of valid dataset",
                         default="./", type=str)
     parser.add_argument("--snapshot", dest="snapshot", help="pre trained weight path",
@@ -42,7 +42,7 @@ def parse_args():
     parser.add_argument("--alpha", dest="alpha", help="ragression loss coefficient",
                         default=1., type=float)
     parser.add_argument("--width_mult", dest="width_mult", choices=[0.5, 1.0], help="mobile V2 width_mult",
-                        default=1.5, type=float)
+                        default=1.0, type=float)
     parser.add_argument("--input_size", dest="input_size", choices=[224, 192, 160, 128, 96], help="size of input images",
                         default=224, type=int)
     args = parser.parse_args()
@@ -193,7 +193,7 @@ def train():
                 if valid_degree_error_f + valid_degree_error_r + valid_degree_error_u < min_degree_error:
                     min_degree_error = valid_degree_error_f + valid_degree_error_r + valid_degree_error_u
                     logger.logger.info("A better validation degrees error {}".format(min_degree_error))
-                    torch.save(model.state_dict(), os.path.join(snapshot_dir, output_string + '_epoch_' + str(epoch) + '_constrain_' +'.pkl'))
+                    torch.save(model.state_dict(), os.path.join(snapshot_dir, output_string + '_epoch_' + str(epoch) + '_constrain_a=0.075' +'.pkl'))
 
 
 if __name__ == "__main__":

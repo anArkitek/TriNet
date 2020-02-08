@@ -9,25 +9,26 @@ import numpy as np
 import torch.nn as nn
 from net import MobileNetV2
 from dataset import loadData
+import pickle
 
 
 def parse_args():
     """Parse input arguments."""
     parser = argparse.ArgumentParser(description='Head pose estimation using the Hopenet network.')
     parser.add_argument('--test_data', dest='test_data', help='Directory path for data.',
-                        default='/home/zhiwen/pose/3Dof-Object-Pose-Estimation-master', type=str)
+                        default='../3Dof-Object-Pose-Estimation-master/', type=str)
     parser.add_argument('--snapshot', dest='snapshot', help='Name of model snapshot.',
                         default='', type=str)
     parser.add_argument('--batch_size', dest='batch_size', help='Batch size.',
-                        default=16, type=int)
+                        default=64, type=int)
     parser.add_argument('--degree_error_limit', dest='degree_error_limit', help='degrees error for calc cs',
                         default=10, type=int)
     parser.add_argument('--save_dir', dest='save_dir', help='directory for saving drawn pic',
-                        default='/home/zhiwen/pose/3Dof-Object-Pose-Estimation-master/visualization', type=str)
+                        default='./plot', type=str)
     parser.add_argument('--show_front', dest='show_front', help='show front or not',
                         default=False, type=bool)
     parser.add_argument('--analysis', dest='analysis', help='analysis result or not',
-                        default=False, type=bool)
+                        default=True, type=bool)
     parser.add_argument('--collect_score', dest='collect_score', help='show huge error or not',
                         default=False, type=bool)
     parser.add_argument('--num_classes', dest='num_classes', help='number of classify',
@@ -37,14 +38,14 @@ def parse_args():
     parser.add_argument('--input_size', dest='input_size', choices=[224, 192, 160, 128, 96], help='size of input images',
                         default=224, type=int)
     parser.add_argument('--write_error', dest='write_error', choices=[224, 192, 160, 128, 96], help='size of input images',
-                        default=True, type=int)
+                        default=False, type=int)
 
     args = parser.parse_args()
     return args
 
 
 def draw_attention_vector(vector_label, pred_vector, img_path, args):
-    save_dir = os.path.join(args.save_dir, 'show_front')
+    #save_dir = os.path.join(args.save_dir, 'show_front')
     img_name = os.path.basename(img_path)
 
     img = cv.imread(img_path)
@@ -70,14 +71,14 @@ def draw_attention_vector(vector_label, pred_vector, img_path, args):
     # draw pred attention vector with red
     utils.draw_front(img, predy, predz, tdx=None, tdy=None, size=100, color=(0, 0, 255))
 
-    cv.imwrite(os.path.join(save_dir, img_name), img)
+    #cv.imwrite(os.path.join(save_dir, img_name), img)
 
 
 def test(model, test_loader, softmax, args):
     if args.analysis:
         utils.mkdir(os.path.join(args.save_dir, 'analysis'))
         #loss_dict = {'img_name': list(), 'angles': list(), 'degree_error': list()}
-        loss_dict = {'img_name': list(),'degree_error': list()}
+        loss_dict = {'img_name': list(),'degree_error_f': list(),'degree_error_r': list(), 'degree_error_u':list()}
 
     if args.write_error:
         error_5 = {'img_name':list(), 'degree_error': list()}
@@ -85,21 +86,35 @@ def test(model, test_loader, softmax, args):
     error = 0.0
     total = 0.0
     score = 0.0
-    for i, (images, classify_label, vector_label, names) in enumerate(tqdm.tqdm(test_loader)):
+    for i, (images, cls_label_f, cls_label_r, cls_label_u, vector_label_f, vector_label_r, vector_label_u, names) in enumerate(tqdm.tqdm(test_loader)):
         with torch.no_grad():
-            print(images.shape)
+            #print(images.shape)
             images = images.cuda(0)
-            vector_label = vector_label.cuda(0)
+
+            vector_label_f = vector_label_f.cuda(0)
+            vector_label_r = vector_label_r.cuda(0)
+            vector_label_u = vector_label_u.cuda(0)
 
             # get x,y,z cls predictions
-            x_cls_pred, y_cls_pred, z_cls_pred = model(images)
+            x_cls_pred_f, y_cls_pred_f, z_cls_pred_f,x_cls_pred_r, y_cls_pred_r, z_cls_pred_r,x_cls_pred_u, y_cls_pred_u, z_cls_pred_u = model(images)
 
             # get prediction vector(get continue value from classify result)
-            _, _, _, pred_vector = utils.classify2vector(x_cls_pred, y_cls_pred, z_cls_pred, softmax, args.num_classes)
+            _, _, _, pred_vector_f = utils.classify2vector(x_cls_pred_f, y_cls_pred_f, z_cls_pred_f, softmax, args.num_classes, )
+
+            _, _, _, pred_vector_r = utils.classify2vector(x_cls_pred_r, y_cls_pred_r, z_cls_pred_r, softmax, args.num_classes, )
+
+            _, _, _, pred_vector_u = utils.classify2vector(x_cls_pred_u, y_cls_pred_u, z_cls_pred_u, softmax, args.num_classes, )
 
             # Mean absolute error
-            cos_value = utils.vector_cos(pred_vector, vector_label)
-            degrees_error = torch.acos(cos_value) * 180 / np.pi
+            cos_value_f = utils.vector_cos(pred_vector_f, vector_label_f)
+            degrees_error_f = torch.acos(cos_value_f) * 180 / np.pi
+            #print(degrees_error_f)
+
+            cos_value_r = utils.vector_cos(pred_vector_r, vector_label_r)
+            degrees_error_r = torch.acos(cos_value_r) * 180 / np.pi
+
+            cos_value_u = utils.vector_cos(pred_vector_u, vector_label_u)
+            degrees_error_u = torch.acos(cos_value_u) * 180 / np.pi
 
             if args.write_error:
                 for k in range(len(names)):
@@ -112,13 +127,15 @@ def test(model, test_loader, softmax, args):
                 for k in range(len(names)):
                     loss_dict['img_name'].append(names[k])
                     #loss_dict['angles'].append(angle_label[k].tolist())  # pitch,yaw,roll
-                    loss_dict['degree_error'].append(float(degrees_error[k]))
-
+                    loss_dict['degree_error_f'].append(float(degrees_error_f[k]))
+                    loss_dict['degree_error_r'].append(float(degrees_error_r[k]))
+                    loss_dict['degree_error_u'].append(float(degrees_error_u[k]))     
+ 
             # collect error
-            error += torch.sum(degrees_error)
-            score += torch.sum(utils.degress_score(cos_value, args.degree_error_limit))
+            #error += torch.sum(degrees_error)
+            #score += torch.sum(utils.degress_score(cos_value, args.degree_error_limit))
 
-            total += vector_label.size(0)
+            #total += vector_label.size(0)
 
             # Save first image in batch with pose cube or axis.
             if args.show_front:
@@ -129,10 +146,15 @@ def test(model, test_loader, softmax, args):
                                           names[j],
                                           args)
 
-    avg_error = error / total
-    total_score = score / total
-    print('Average degree Error:%.4f | score with error<10º:%.4f' % (avg_error.item(), total_score.item()))
+    #avg_error = error / total
+    #total_score = score / total
+    #print('Average degree Error:%.4f | score with error<10º:%.4f' % (avg_error.item(), total_score.item()))
+    
+    #save loss dict
+    with open('loss.pickle', 'wb') as handle:
+        pickle.dump(loss_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
+    print("done saving loss dict.")
 
     if args.write_error:
         print("Writing error to local txt file.")

@@ -169,7 +169,7 @@ def remove_distortion(img):
     
     crop_img = img[border[1]:border[3],border[0]:border[2],:]
     #print(crop_img.shape)
-    cv2.imshow("cropped", crop_img)  # uncomment this line if error messages show up.
+    #cv2.imshow("cropped", crop_img)  # uncomment this line if error messages show up.
     
     map1, map2 = cv2.fisheye.initUndistortRectifyMap(K, D, np.eye(3), K, DIM, cv2.CV_16SC2)
     undistorted_img = cv2.remap(crop_img, map1, map2, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
@@ -199,7 +199,7 @@ def draw_3d_coor(v1, v2, v3, img, ax):
 
     plt.draw()
     #print("draw")
-    plt.pause(0.0001)
+    plt.pause(0.0000001)
     plt.cla()
 
 def get_label_from_txt(txt_path):
@@ -457,7 +457,7 @@ def computeLoss(cls_label_f, cls_label_r, cls_label_u,
     loss_otho_ur = reg_criterion( torch.sum(vector_pred_u * vector_pred_r, axis=1),  torch.tensor(np.array([0.0]*length, dtype=np.float32)).cuda(0))
 
 
-    loss = [x_loss_f, y_loss_f, z_loss_f, x_loss_r, y_loss_r, z_loss_r, x_loss_u, y_loss_u, z_loss_u, loss_otho_fr, loss_otho_fu, loss_otho_ur]
+    loss = [x_loss_f, y_loss_f, z_loss_f, x_loss_r, y_loss_r, z_loss_r, x_loss_u, y_loss_u, z_loss_u, 0.075 * loss_otho_fr, 0.075* loss_otho_fu, 0.075 * loss_otho_ur]
     #loss = [x_loss_f, y_loss_f, z_loss_f, x_loss_r, y_loss_r, z_loss_r, x_loss_u, y_loss_u, z_loss_u]
 
     # get degree error
@@ -496,6 +496,7 @@ def classify2vector(x, y, z, softmax, num_classes):
 
     pred_vector = torch.stack([x_pred, y_pred, z_pred]).transpose(1, 0)
     pred_vector = norm_vector(pred_vector)
+    #print(pred_vector)
 
     # split to x,y,z
     x_reg = pred_vector[:, 0]
@@ -513,27 +514,41 @@ def show_loss_distribute(loss_dict, analysis_dir, snapshot_name):
     :param snapshot_name:model snapshot name
     :return:
     """
-    plt.switch_backend('agg')
+    #plt.switch_backend('agg')
 
     detail = snapshot_name
 
-    angles = np.array(loss_dict['angles']) * 180 / np.pi
-    degrees_error = np.array(loss_dict['degree_error'])
+    n = len(loss_dict["img_name"])
+    x = [i+1 for i in range(n)]
+    front_error = loss_dict['degree_error_f']
+    right_error = loss_dict['degree_error_r']
+    up_error = loss_dict['degree_error_u']
 
-    plt.subplots(figsize=(30, 10))
+    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(20,10))
+    fig.suptitle('Error distribution')
+    ax1.scatter(x, front_error)
+    ax2.scatter(x, right_error)
+    ax3.scatter(x, up_error)
+    plt.show()
+
+    #angles = np.array(loss_dict['angles']) * 180 / np.pi
+    #degrees_error = np.array(loss_dict['degree_error'])
+
+    #plt.subplots(figsize=(30, 10))
+    
 
     # figure pitch,yaw,roll
-    for i, name in enumerate(['Pitch', 'Yaw', 'Roll']):
-        plt.subplot(1, 3, i + 1)
-        plt.xlim(-100, 105)
-        plt.xticks([j for j in range(-100, 105, 20)], [j for j in range(-100, 105, 20)])
-        plt.ylim(-100, 105)
-        plt.yticks([j for j in range(-100, 105, 10)], [j for j in range(-100, 105, 10)])
-        plt.scatter(angles[:, i], degrees_error, linewidths=0.2)
-        plt.title(name + ":Loss distribution(" + detail + ")")
-        plt.xlabel(name + ":GT")
-        plt.ylabel(name + ":Loss(degree-error)")
-        plt.grid()
+    #for i, name in enumerate(['Pitch', 'Yaw', 'Roll']):
+    #    plt.subplot(1, 3, i + 1)
+    #    plt.xlim(-100, 105)
+    #    plt.xticks([j for j in range(-100, 105, 20)], [j for j in range(-100, 105, 20)])
+    #    plt.ylim(-100, 105)
+    #    plt.yticks([j for j in range(-100, 105, 10)], [j for j in range(-100, 105, 10)])
+    #    plt.scatter(angles[:, i], degrees_error, linewidths=0.2)
+    #    plt.title(name + ":Loss distribution(" + detail + ")")
+    #    plt.xlabel(name + ":GT")
+    #    plt.ylabel(name + ":Loss(degree-error)")
+    #    plt.grid()
 
     plt.savefig(os.path.join(analysis_dir, detail + '.png'))
 

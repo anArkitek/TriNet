@@ -31,10 +31,11 @@ with open(filename) as f:
 
 dst_clean = [re.sub('[A-Z=]','',x.rstrip()) for x in dst]
 
+offset = 13000
 
 i = 0
 while i <= len(dst_clean)-1:
-    save_path = './angles/img_{:06}.txt'.format(i//4)
+    save_path = './angles/img_{:06}.txt'.format(i//4 + offset)
     with open(save_path, 'w') as f:
         f.write(dst_clean[i] +'\n')
         f.write(dst_clean[i+1]+'\n')

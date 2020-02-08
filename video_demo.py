@@ -11,9 +11,9 @@ def parse_args():
     """Parse input arguments."""
     parser = argparse.ArgumentParser(description='Video Testing.')
     parser.add_argument('--video', dest='video', help='Directory path for data.',
-                        default='./videos/test1.mp4', type=str)
+                        default='./videos/test.mp4', type=str)
     parser.add_argument('--snapshot1', dest='snapshot1', help='Directory path for data.',
-                        default='./results/MobileNetV2_1.5_classes_66_input_224/snapshot/MobileNetV2_1.5_classes_66_input_224_epoch_50_constrain_.pkl', type=str)
+                        default='./results/MobileNetV2_1.0_classes_66_input_224/snapshot/MobileNetV2_1.0_classes_66_input_224_epoch_50_constrain_.pkl', type=str)
 
 
     
