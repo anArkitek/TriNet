@@ -56,6 +56,5 @@ network input: 244 * 244
 :              :  with multiple  :  has room for  :   multi-line   :    multi-line  :  multi-line    :
 :              :  lines.         :  more text.    :      text.     :         text.  :  text.         :
 |--------------|-----------------|----------------|----------------|----------------|----------------|
-[Caption Text]
 
 
