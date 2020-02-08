@@ -29,7 +29,7 @@ python test_on_img.py --img --snapshot
 python video_demo.py --video --snapshot
 
 ## Video demo
-[video]()
+[video](https://www.youtube.com/watch?v=kYeEM_WB_DI)
 
 ## Dataset
 Training size: 10075 <br>
