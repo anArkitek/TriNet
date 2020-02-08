@@ -41,15 +41,15 @@ network input: 244 * 244
 ## One model for all(degree error)
 |#|Experiment|front vector loss(training)|right vector loss(training)|up vector loss(training)|validation loss(total)|
 | :--- | :----: | ----: |----: |----: |----: |
-|1|one model for three vector|3.767|3.375|3.732|11.195|
-|2|one model for three vector with constraints|3.109|3.184|3.187|11.233|
+|1|one model for three vectors|3.767|3.375|3.732|11.195|
+|2|one model for three vectors with constraints|3.109|3.184|3.187|11.233|
 
 <br>
 
 ## One model for all(training loss)
 |#|Experiment|front vector loss(training)|right vector loss(training)|up vector loss(training)|
 | :--- | :----: | ----: |----: |----: |
-|1|one model for three vector|0.232|0.230|0.231|
-|2|one model for three vector with constraints|0.232|0.233|0.229|
+|1|one model for three vectors|0.232|0.230|0.231|
+|2|one model for three vectors with constraints|0.232|0.233|0.229|
 
 
