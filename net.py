@@ -45,7 +45,7 @@ class InvertedResidual(nn.Module):
 
 
 class MobileNetV2(nn.Module):
-    def __init__(self, num_classes=3, width_mult=1.0):
+    def __init__(self, num_classes=3, width_mult=1.5):
         super(MobileNetV2, self).__init__()
         block = InvertedResidual
         input_channel = 32
@@ -57,7 +57,9 @@ class MobileNetV2(nn.Module):
             [6, 32, 3, 2],
             [6, 64, 4, 2],
             [6, 96, 3, 1],
+            [6, 128, 3, 1], # add 
             [6, 160, 3, 2],
+            [6, 256, 3, 2], # add
             [6, 320, 1, 1],
         ]
 
@@ -80,9 +82,17 @@ class MobileNetV2(nn.Module):
         self.avg_pool = nn.AdaptiveAvgPool2d(1)
 
         # building classifier
-        self.fc_x = nn.Linear(self.last_channel, num_classes)
-        self.fc_y = nn.Linear(self.last_channel, num_classes)
-        self.fc_z = nn.Linear(self.last_channel, num_classes)
+        self.fc_x1 = nn.Linear(self.last_channel, num_classes)
+        self.fc_y1 = nn.Linear(self.last_channel, num_classes)
+        self.fc_z1 = nn.Linear(self.last_channel, num_classes)
+
+        self.fc_x2 = nn.Linear(self.last_channel, num_classes)
+        self.fc_y2 = nn.Linear(self.last_channel, num_classes)
+        self.fc_z2 = nn.Linear(self.last_channel, num_classes)
+
+        self.fc_x3 = nn.Linear(self.last_channel, num_classes)
+        self.fc_y3 = nn.Linear(self.last_channel, num_classes)
+        self.fc_z3 = nn.Linear(self.last_channel, num_classes)
 
         # weight initialization
         for m in self.modules():
@@ -100,7 +110,16 @@ class MobileNetV2(nn.Module):
     def forward(self, x, phase='train'):
         x = self.features(x)
         x = self.avg_pool(x).view(x.size(0), -1)
-        x_v = self.fc_x(x)
-        y_v = self.fc_y(x)
-        z_v = self.fc_z(x)
-        return x_v, y_v, z_v
+        x_v1 = self.fc_x1(x)
+        y_v1 = self.fc_y1(x)
+        z_v1 = self.fc_z1(x)
+
+        x_v2 = self.fc_x2(x)
+        y_v2 = self.fc_y2(x)
+        z_v2 = self.fc_z2(x)
+
+        x_v3 = self.fc_x3(x)
+        y_v3 = self.fc_y3(x)
+        z_v3 = self.fc_z3(x)
+
+        return x_v1, y_v1, z_v1, x_v2, y_v2, z_v2, x_v3, y_v3, z_v3

@@ -27,7 +27,7 @@ def loadData(data_dir, input_size, batch_size, num_classes, training=True):
                                               transforms.ToTensor(),
                                               transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
         dataset = TrainDataSet(data_dir, transformations, num_classes)
-        train_data_length = int(dataset.length * 0.8)
+        train_data_length = int(dataset.length * 0.9)
         valid_data_length = dataset.length - train_data_length
         print("Traning sampels:", train_data_length)
         print("Valid samples:", valid_data_length)
@@ -108,9 +108,17 @@ class TrainDataSet(Dataset):
         #vector_label = torch.FloatTensor(vector_label)
 
         #get front vector and right vector
-        front_vector, _  = get_vectors(info)
-        vector_label = torch.FloatTensor(front_vector)
+        front_vector, right_vector, up_vector  = get_vectors(info)
+        #print(np.dot(np.array(front_vector),np.array(right_vector)))
+        #print(np.dot(np.array(front_vector),np.array(up_vector)))
+        #print(np.dot(np.array(right_vector),np.array(up_vector)))
 
+
+        vector_label_f = torch.FloatTensor(front_vector)
+        vector_label_r = torch.FloatTensor(right_vector)
+        vector_label_u = torch.FloatTensor(up_vector)
+
+        #----------------front vector-------------------------
         # classification label
         classify_label = torch.LongTensor(np.digitize(front_vector, self.bins)) # return the index
         classify_label = np.where(classify_label > self.num_classes, self.num_classes, classify_label)
@@ -121,9 +129,34 @@ class TrainDataSet(Dataset):
         soft_label_y = get_soft_label(classify_label[1], self.num_classes)
         soft_label_z = get_soft_label(classify_label[2], self.num_classes)
 
-        soft_label = torch.stack([soft_label_x, soft_label_y, soft_label_z])
+        soft_label_f = torch.stack([soft_label_x, soft_label_y, soft_label_z])
 
-        return img, soft_label, vector_label, os.path.join(self.data_dir, "dataset/bg_imgs/" + base_name + ".jpg")
+        #-------------------right vector--------------
+        classify_label = torch.LongTensor(np.digitize(right_vector, self.bins)) # return the index
+        classify_label = np.where(classify_label > self.num_classes, self.num_classes, classify_label)
+        classify_label = np.where(classify_label < 1, 1, classify_label)
+
+        # soft label
+        soft_label_x = get_soft_label(classify_label[0], self.num_classes)
+        soft_label_y = get_soft_label(classify_label[1], self.num_classes)
+        soft_label_z = get_soft_label(classify_label[2], self.num_classes)
+
+        soft_label_r = torch.stack([soft_label_x, soft_label_y, soft_label_z])
+
+
+        #------------------up vector-------------------
+        classify_label = torch.LongTensor(np.digitize(up_vector, self.bins)) # return the index
+        classify_label = np.where(classify_label > self.num_classes, self.num_classes, classify_label)
+        classify_label = np.where(classify_label < 1, 1, classify_label)
+
+        # soft label
+        soft_label_x = get_soft_label(classify_label[0], self.num_classes)
+        soft_label_y = get_soft_label(classify_label[1], self.num_classes)
+        soft_label_z = get_soft_label(classify_label[2], self.num_classes)
+
+        soft_label_u = torch.stack([soft_label_x, soft_label_y, soft_label_z])
+
+        return img, soft_label_f, soft_label_r, soft_label_u, vector_label_f, vector_label_r, vector_label_u, os.path.join(self.data_dir, "dataset/bg_imgs/" + base_name + ".jpg")
 
     def __len__(self):
         return self.length

@@ -191,6 +191,7 @@ def draw_3d_coor(v1, v2, v3, img, ax):
     x, y, z = zip(zero, v3)
     plt.plot(y, x, z, '-b', linewidth=3)
     
+    
 
     ax.set_xlim(-1, 1)
     ax.set_ylim(-1, 1)
@@ -198,7 +199,7 @@ def draw_3d_coor(v1, v2, v3, img, ax):
 
     plt.draw()
     #print("draw")
-    plt.pause(0.01)
+    plt.pause(0.0001)
     plt.cla()
 
 def get_label_from_txt(txt_path):
@@ -333,8 +334,9 @@ def get_vectors(info):
 
     vec_ocx = np.linalg.inv(T_wc) @ T_wo @ np.array([1.0, 0.0, 0.0])
     vec_ocy = np.linalg.inv(T_wc) @ T_wo @ np.array([0.0, 1.0, 0.0])
+    vec_ocz = np.linalg.inv(T_wc) @ T_wo @ np.array([0.0, 0.0, 1.0])
 
-    return vec_ocx, vec_ocy
+    return vec_ocx, vec_ocy, vec_ocz
 
 
 
@@ -368,44 +370,107 @@ def get_soft_label(cls_label, num_classes):
     return metrix_vector / torch.sum(metrix_vector)
 
 
-def computeLoss(classify_label, vector_label, logits, softmax, cls_criterion, reg_criterion, args):
+def computeLoss(cls_label_f, cls_label_r, cls_label_u,
+                vector_label_f, vector_label_r, vector_label_u, 
+                logits, softmax, cls_criterion, reg_criterion, args):
     # get x,y,z cls label
-    x_cls_label = classify_label[:, 0]
-    y_cls_label = classify_label[:, 1]
-    z_cls_label = classify_label[:, 2]
+    x_cls_label_f = cls_label_f[:, 0]
+    y_cls_label_f = cls_label_f[:, 1]
+    z_cls_label_f = cls_label_f[:, 2]
+
+    x_cls_label_r = cls_label_r[:, 0]
+    y_cls_label_r = cls_label_r[:, 1]
+    z_cls_label_r = cls_label_r[:, 2]
+
+    x_cls_label_u = cls_label_u[:, 0]
+    y_cls_label_u = cls_label_u[:, 1]
+    z_cls_label_u = cls_label_u[:, 2]
 
     # get x,y,z continue label
-    x_reg_label = vector_label[:, 0]
-    y_reg_label = vector_label[:, 1]
-    z_reg_label = vector_label[:, 2]
+    x_reg_label_f = vector_label_f[:, 0]
+    y_reg_label_f = vector_label_f[:, 1]
+    z_reg_label_f = vector_label_f[:, 2]
 
-    x_cls_pred, y_cls_pred, z_cls_pred = logits
+    x_reg_label_r = vector_label_r[:, 0]
+    y_reg_label_r = vector_label_r[:, 1]
+    z_reg_label_r = vector_label_r[:, 2]
+
+    x_reg_label_u = vector_label_u[:, 0]
+    y_reg_label_u = vector_label_u[:, 1]
+    z_reg_label_u = vector_label_u[:, 2]
+
+    x_cls_pred_f, y_cls_pred_f, z_cls_pred_f,x_cls_pred_r, y_cls_pred_r, z_cls_pred_r,x_cls_pred_u, y_cls_pred_u, z_cls_pred_u = logits
 
     # CrossEntry loss(for classify)
-    x_cls_loss = cls_criterion(x_cls_pred, x_cls_label)
-    y_cls_loss = cls_criterion(y_cls_pred, y_cls_label)
-    z_cls_loss = cls_criterion(z_cls_pred, z_cls_label)
+    x_cls_loss_f = cls_criterion(x_cls_pred_f, x_cls_label_f)
+    y_cls_loss_f = cls_criterion(y_cls_pred_f, y_cls_label_f)
+    z_cls_loss_f = cls_criterion(z_cls_pred_f, z_cls_label_f)
+
+    x_cls_loss_r = cls_criterion(x_cls_pred_r, x_cls_label_r)
+    y_cls_loss_r = cls_criterion(y_cls_pred_r, y_cls_label_r)
+    z_cls_loss_r = cls_criterion(z_cls_pred_r, z_cls_label_r)
+
+    x_cls_loss_u = cls_criterion(x_cls_pred_u, x_cls_label_u)
+    y_cls_loss_u = cls_criterion(y_cls_pred_u, y_cls_label_u)
+    z_cls_loss_u = cls_criterion(z_cls_pred_u, z_cls_label_u)
 
     # get prediction vector(get continue value from classify result)
-    x_reg_pred, y_reg_pred, z_reg_pred, vector_pred = classify2vector(x_cls_pred, y_cls_pred, z_cls_pred, softmax, args.num_classes)
+    x_reg_pred_f, y_reg_pred_f, z_reg_pred_f, vector_pred_f = classify2vector(x_cls_pred_f, y_cls_pred_f, z_cls_pred_f, softmax, args.num_classes)
+    x_reg_pred_r, y_reg_pred_r, z_reg_pred_r, vector_pred_r = classify2vector(x_cls_pred_r, y_cls_pred_r, z_cls_pred_r, softmax, args.num_classes)
+    x_reg_pred_u, y_reg_pred_u, z_reg_pred_u, vector_pred_u = classify2vector(x_cls_pred_u, y_cls_pred_u, z_cls_pred_u, softmax, args.num_classes)
 
     # Regression loss
-    x_reg_loss = reg_criterion(x_reg_pred, x_reg_label)
-    y_reg_loss = reg_criterion(y_reg_pred, y_reg_label)
-    z_reg_loss = reg_criterion(z_reg_pred, z_reg_label)
+    #print(x_reg_pred_f.shape, x_reg_label_f.shape)
+    #print(x_reg_label_f.dtype)
+    x_reg_loss_f = reg_criterion(x_reg_pred_f, x_reg_label_f)
+    y_reg_loss_f = reg_criterion(y_reg_pred_f, y_reg_label_f)
+    z_reg_loss_f = reg_criterion(z_reg_pred_f, z_reg_label_f)
+
+    x_reg_loss_r = reg_criterion(x_reg_pred_r, x_reg_label_r)
+    y_reg_loss_r = reg_criterion(y_reg_pred_r, y_reg_label_r)
+    z_reg_loss_r = reg_criterion(z_reg_pred_r, z_reg_label_r)
+
+    x_reg_loss_u = reg_criterion(x_reg_pred_u, x_reg_label_u)
+    y_reg_loss_u = reg_criterion(y_reg_pred_u, y_reg_label_u)
+    z_reg_loss_u = reg_criterion(z_reg_pred_u, z_reg_label_u)
 
     # Total loss
-    x_loss = x_cls_loss + args.alpha * x_reg_loss
-    y_loss = y_cls_loss + args.alpha * y_reg_loss
-    z_loss = z_cls_loss + args.alpha * z_reg_loss
+    x_loss_f = x_cls_loss_f + args.alpha * x_reg_loss_f
+    y_loss_f = y_cls_loss_f + args.alpha * y_reg_loss_f
+    z_loss_f = z_cls_loss_f + args.alpha * z_reg_loss_f
 
-    loss = [x_loss, y_loss, z_loss]
+    x_loss_r = x_cls_loss_r + args.alpha * x_reg_loss_r
+    y_loss_r = y_cls_loss_r + args.alpha * y_reg_loss_r
+    z_loss_r = z_cls_loss_r + args.alpha * z_reg_loss_r
+
+    x_loss_u = x_cls_loss_u + args.alpha * x_reg_loss_u
+    y_loss_u = y_cls_loss_u + args.alpha * y_reg_loss_u
+    z_loss_u = z_cls_loss_u + args.alpha * z_reg_loss_u
+
+    # loss for perpendicularity
+    #print(torch.sum(vector_pred_f * vector_pred_r, axis=1).shape, torch.tensor(np.array([0.]*args.batch_size)).cuda(0).shape)
+    #print(ortho.dtype)
+
+    length = vector_pred_f.shape[0]
+    loss_otho_fr = reg_criterion( torch.sum(vector_pred_f * vector_pred_r, axis=1),  torch.tensor(np.array([0.0]*length, dtype=np.float32)).cuda(0))
+    loss_otho_fu = reg_criterion( torch.sum(vector_pred_f * vector_pred_u, axis=1),  torch.tensor(np.array([0.0]*length, dtype=np.float32)).cuda(0))
+    loss_otho_ur = reg_criterion( torch.sum(vector_pred_u * vector_pred_r, axis=1),  torch.tensor(np.array([0.0]*length, dtype=np.float32)).cuda(0))
+
+
+    loss = [x_loss_f, y_loss_f, z_loss_f, x_loss_r, y_loss_r, z_loss_r, x_loss_u, y_loss_u, z_loss_u, loss_otho_fr, loss_otho_fu, loss_otho_ur]
+    #loss = [x_loss_f, y_loss_f, z_loss_f, x_loss_r, y_loss_r, z_loss_r, x_loss_u, y_loss_u, z_loss_u]
 
     # get degree error
-    cos_value = vector_cos(vector_pred, vector_label)
-    degree_error = torch.mean(torch.acos(cos_value) * 180 / np.pi)
+    cos_value_f = vector_cos(vector_pred_f, vector_label_f)
+    degree_error_f = torch.mean(torch.acos(cos_value_f) * 180 / np.pi)
 
-    return loss, degree_error
+    cos_value_r = vector_cos(vector_pred_r, vector_label_r)
+    degree_error_r = torch.mean(torch.acos(cos_value_r) * 180 / np.pi)
+
+    cos_value_u = vector_cos(vector_pred_u, vector_label_u)
+    degree_error_u = torch.mean(torch.acos(cos_value_u) * 180 / np.pi)
+
+    return loss, degree_error_f, degree_error_r, degree_error_u
 
 
 def classify2vector(x, y, z, softmax, num_classes):
