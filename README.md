@@ -55,6 +55,9 @@ network input: 244 * 244
 |2|one model for three vectors with constraints|0.232|0.233|0.229|
 
 ## Pareto Plot on error
-<img src="https://github.com/chuzcjoe/TriNet/raw/master/imgs/right_error.png" width="800">
+<img src="https://github.com/chuzcjoe/TriNet/raw/master/imgs/front_error.png" width="600">
+<img src="https://github.com/chuzcjoe/TriNet/raw/master/imgs/right_error.png" width="600">
+<img src="https://github.com/chuzcjoe/TriNet/raw/master/imgs/up_error.png" width="600">
+
 
 
