@@ -54,4 +54,7 @@ network input: 244 * 244
 |1|one model for three vectors|0.232|0.230|0.231|
 |2|one model for three vectors with constraints|0.232|0.233|0.229|
 
+## Pareto Plot on error
+
+
 
