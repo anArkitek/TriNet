@@ -59,5 +59,7 @@ network input: 244 * 244
 <img src="https://github.com/chuzcjoe/TriNet/raw/master/imgs/right_error.png" width="600">
 <img src="https://github.com/chuzcjoe/TriNet/raw/master/imgs/up_error.png" width="600">
 
-
+## Test
+### Video test demo(no tracker)
+[video]()
 
