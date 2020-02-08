@@ -13,10 +13,13 @@ def parse_args():
     parser.add_argument('--video', dest='video', help='Directory path for data.',
                         default='./videos/test1.mp4', type=str)
     parser.add_argument('--snapshot1', dest='snapshot1', help='Directory path for data.',
-                        default='./results/MobileNetV2_1.0_classes_66_input_224/snapshot/MobileNetV2_1.0_classes_66_input_224_epoch_50_front_vector.pkl', type=str)
+                        default='./models/MobileNetV2_1.0_classes_66_input_224_epoch_50_front_vector.pkl', type=str)
 
     parser.add_argument('--snapshot2', dest='snapshot2', help='Directory path for data.',
-                        default='./results/MobileNetV2_1.0_classes_66_input_224/snapshot/MobileNetV2_1.0_classes_66_input_224_epoch_17_right_vector.pkl', type=str)
+                        default='./models/MobileNetV2_1.0_classes_66_input_224_epoch_50_right_vector.pkl', type=str)
+
+    parser.add_argument('--snapshot3', dest='snapshot3', help='Directory path for data.',
+                        default='./models/MobileNetV2_1.0_classes_66_input_224_epoch_60_up_vector.pkl', type=str)
 
     
 
@@ -30,7 +33,7 @@ if __name__ == '__main__':
     cap = cv2.VideoCapture(args.video)
     _, frame = cap.read()
 
-    test = Test(MobileNetV2, MobileNetV2, args.snapshot1, args.snapshot2, 66)
+    test = Test(MobileNetV2, MobileNetV2, MobileNetV2, args.snapshot1, args.snapshot2, args.snapshot3, 66)
     transform = transforms.Compose([transforms.ToTensor(),transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
 
     # make 3D axis
@@ -40,8 +43,7 @@ if __name__ == '__main__':
     while 1:
         _, frame = cap.read()
         draw_img = frame.copy()
-	
-	frame = remove_distortion(frame)
+        frame = remove_distortion(frame)
         img = cv2.resize(frame,(224,224))
         img = transform(img)
         img = img.unsqueeze(0)

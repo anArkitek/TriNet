@@ -16,11 +16,12 @@ import matplotlib.pyplot as plt
 
 class Test:
 
-    def __init__(self,model1,model2,snapshot1,snapshot2,num_classes):
+    def __init__(self,model1,model2,model3,snapshot1,snapshot2,snapshot3,num_classes):
         
         self.num_classes = num_classes
         self.model1 = model1(num_classes=self.num_classes)
         self.model2 = model2(num_classes=self.num_classes)
+        self.model3 = model3(num_classes=self.num_classes)
 
         self.saved_state_dict1 = torch.load(snapshot1)
         self.model1.load_state_dict(self.saved_state_dict1)
@@ -30,13 +31,18 @@ class Test:
         self.model2.load_state_dict(self.saved_state_dict2)
         self.model2.cuda(0)
 
+        self.saved_state_dict3 = torch.load(snapshot3)
+        self.model3.load_state_dict(self.saved_state_dict3)
+        self.model3.cuda(0)
+
 
         self.model1.eval()  # Change model to 'eval' mode (BN uses moving mean/var).
         self.model2.eval()
+        self.model3.eval()
 
         self.softmax = nn.Softmax(dim=1).cuda(0)
 
-    def draw_attention_vector(self, pred_vector1, pred_vector2, img, ax):
+    def draw_attention_vector(self, pred_vector1, pred_vector2, pred_vector3, img, ax):
         #save_dir = os.path.join(args.save_dir, 'show_front')
         #img_name = os.path.basename(img_path)
 
@@ -54,10 +60,13 @@ class Test:
 
         predx, predy, predz = pred_vector2
         utils.draw_front(img, predy, predz, tdx=None, tdy=None, size=100, color=(0, 255, 0))
+
+        predx, predy, predz = pred_vector3
+        utils.draw_front(img, predy, predz, tdx=None, tdy=None, size=100, color=(255, 0, 0))
         
         #cv.imwrite(os.path.join(save_dir, img_name), img)
         cv.imshow("test_result",img)
-        utils.draw_3d_coor(pred_vector1, pred_vector2, ax)
+        utils.draw_3d_coor(pred_vector1, pred_vector2, pred_vector3, img, ax)
         #plt.imshow(img)
         #plt.show()
 
@@ -80,7 +89,14 @@ class Test:
             # get prediction vector(get continue value from classify result)
             _, _, _, pred_vector2 = utils.classify2vector(x_cls_pred, y_cls_pred, z_cls_pred, self.softmax, self.num_classes)
 
-            self.draw_attention_vector(pred_vector1[0].cpu().tolist(), pred_vector2[0].cpu().tolist(),
+
+            # get x,y,z cls predictions
+            x_cls_pred, y_cls_pred, z_cls_pred = self.model3(images)
+
+            # get prediction vector(get continue value from classify result)
+            _, _, _, pred_vector3 = utils.classify2vector(x_cls_pred, y_cls_pred, z_cls_pred, self.softmax, self.num_classes)
+
+            self.draw_attention_vector(pred_vector1[0].cpu().tolist(), pred_vector2[0].cpu().tolist(), pred_vector3[0].cpu().tolist(),
                                           draw_img,ax)
 
 #input_size = 224

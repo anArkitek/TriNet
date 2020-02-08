@@ -73,37 +73,21 @@ def valid(model, valid_loader, softmax):
     with torch.no_grad():
         degrees_error = 0.
         count = 0.
-        #for j, (valid_img, cls_label, vector_label, _,) in enumerate(valid_loader):
-        for j, (valid_img, cls_label_f, cls_label_r, cls_label_u, vector_label_f, vector_label_r, vector_label_u, _) in enumerate(valid_loader):
+        for j, (valid_img, cls_label, vector_label, _,) in enumerate(valid_loader):
             valid_img = valid_img.cuda(0)
-
-            vector_label_f = vector_label_f.cuda(0)
-            vector_label_r = vector_label_r.cuda(0)
-            vector_label_u = vector_label_u.cuda(0)
+            vector_label = vector_label.cuda(0)
 
             # get x,y,z cls predictions
-            #x_cls_pred, y_cls_pred, z_cls_pred = model(valid_img)
-            x_cls_pred_f, y_cls_pred_f, z_cls_pred_f,x_cls_pred_r, y_cls_pred_r, z_cls_pred_r,x_cls_pred_u, y_cls_pred_u, z_cls_pred_u = model(valid_img)
+            x_cls_pred, y_cls_pred, z_cls_pred = model(valid_img)
 
             # get prediction vector(get continue value from classify result)
-            _, _, _, vector_pred_f = utils.classify2vector(x_cls_pred_f, y_cls_pred_f, z_cls_pred_f, softmax, args.num_classes, )
-            _, _, _, vector_pred_r = utils.classify2vector(x_cls_pred_r, y_cls_pred_r, z_cls_pred_r, softmax, args.num_classes, )
-            _, _, _, vector_pred_u = utils.classify2vector(x_cls_pred_u, y_cls_pred_u, z_cls_pred_u, softmax, args.num_classes, )
+            _, _, _, vector_pred = utils.classify2vector(x_cls_pred, y_cls_pred, z_cls_pred, softmax, args.num_classes, )
 
             # get validation degrees error
-            cos_value = utils.vector_cos(vector_pred_f, vector_label_f)
-            degrees_error_f += torch.mean(torch.acos(cos_value) * 180 / np.pi)
-
-            cos_value = utils.vector_cos(vector_pred_r, vector_label_r)
-            degrees_error_r += torch.mean(torch.acos(cos_value) * 180 / np.pi)
-
-            cos_value = utils.vector_cos(vector_pred_u, vector_label_u)
-            degrees_error_u += torch.mean(torch.acos(cos_value) * 180 / np.pi)
-
-
-
+            cos_value = utils.vector_cos(vector_pred, vector_label)
+            degrees_error += torch.mean(torch.acos(cos_value) * 180 / np.pi)
             count += 1.
-    return degrees_error_f / count, degree_error_r / count, degrees_error_u / count
+    return degrees_error / count
 
 def train():
     """
@@ -143,49 +127,40 @@ def train():
                                           {"params": get_cls_fc_params(model), "lr": lr * 5}], lr=args.lr)
         lr = lr * args.lr_decay
         min_degree_error = 180.
-        for i, (images, cls_label_f, cls_label_r, cls_label_u, vector_label_f, vector_label_r, vector_label_u, name) in enumerate(train_data_loader):
+        for i, (images, classify_label, vector_label, name) in enumerate(train_data_loader):
             step += 1
             images = images.cuda(0)
-            #classify_label = classify_label.cuda(0)
-            #vector_label = vector_label.cuda(0)
-            cls_label_f = cls_label_f.cuda(0)
-            cls_label_r = cls_label_r.cuda(0)
-            cls_label_u = cls_label_u.cuda(0)
-
-            vector_label_f = vector_label_f.cuda(0)
-            vector_label_r = vector_label_f.cuda(0)
-            vector_label_u = vector_label_u.cuda(0)
+            classify_label = classify_label.cuda(0)
+            vector_label = vector_label.cuda(0)
 
             # inference
-            x_cls_pred_f, y_cls_pred_f, z_cls_pred_f,x_cls_pred_r, y_cls_pred_r, z_cls_pred_r,x_cls_pred_u, y_cls_pred_u, z_cls_pred_u = model(images)
-            logits = [x_cls_pred_f, y_cls_pred_f, z_cls_pred_f,x_cls_pred_r, y_cls_pred_r, z_cls_pred_r,x_cls_pred_u, y_cls_pred_u, z_cls_pred_u]
-            loss, degree_error_f, degree_error_r, degree_error_u = utils.computeLoss(cls_label_f, cls_label_r, cls_label_u,
-                vector_label_f, vector_label_r, vector_label_u, 
-                logits, softmax, cls_criterion, reg_criterion, args)
+            x_cls_pred, y_cls_pred, z_cls_pred = model(images)
+            logits = [x_cls_pred, y_cls_pred, z_cls_pred]
+            loss, degree_error = utils.computeLoss(classify_label, vector_label, logits, softmax, cls_criterion, reg_criterion, args)
 
             #print(loss)
             # backward
-            grad = [torch.tensor(1.0).cuda(0) for _ in range(12)]
+            grad = [torch.tensor(1.0).cuda(0) for _ in range(3)]
             optimizer.zero_grad()
             torch.autograd.backward(loss, grad)
             optimizer.step()
 
             # save training log and weight
-            if (i + 1) % 50 == 0:
-                msg = "Epoch: %d/%d | Iter: %d/%d | x_loss: %.6f | y_loss: %.6f | z_loss: %.6f | degree_error_f:%.3f | degree_error_r:%.3f | degree_error_u:%.3f"  % (
-                    epoch, args.epochs, i + 1, len(train_data_loader.dataset) // args.batch_size, loss[0].item()+loss[3].item()+loss[6].item(), loss[1].item()+loss[4].item()+loss[7].item(),
-                    loss[2].item()+loss[5].item()+loss[8].item(), degree_error_f.item(), degree_error_r.item(), degree_error_u.item())
+            if (i + 1) % 10 == 0:
+                msg = "Epoch: %d/%d | Iter: %d/%d | x_loss: %.6f | y_loss: %.6f | z_loss: %.6f | degree_error:%.3f" % (
+                    epoch, args.epochs, i + 1, len(train_data_loader.dataset) // args.batch_size, loss[0].item(), loss[1].item(),
+                    loss[2].item(), degree_error.item())
                 logger.logger.info(msg)
-                valid_degree_error_f, valid_degree_error_r, valid_degree_error_u = valid(model, valid_data_loader, softmax)
+                valid_degree_error = valid(model, valid_data_loader, softmax)
 
                 # writer summary
-                writer.add_scalar("train degrees error", degree_error_f, step)
-                writer.add_scalar("valid degrees error", valid_degree_error_f, step)
+                writer.add_scalar("train degrees error", degree_error, step)
+                writer.add_scalar("valid degrees error", valid_degree_error, step)
 
                 # saving snapshot
-                if valid_degree_error_f + valid_degree_error_r + valid_degree_error_u < min_degree_error:
-                    min_degree_error = valid_degree_error_f + valid_degree_error_r + valid_degree_error_u
-                    logger.logger.info("A better validation degrees error {}".format(min_degree_error))
+                if valid_degree_error < min_degree_error:
+                    min_degree_error = valid_degree_error
+                    logger.logger.info("A better validation degrees error {}".format(valid_degree_error))
                     torch.save(model.state_dict(), os.path.join(snapshot_dir, output_string + '_epoch_' + str(epoch) + '.pkl'))
 
 
