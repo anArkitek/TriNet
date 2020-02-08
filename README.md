@@ -3,16 +3,7 @@
 
 ## Train
 
-python train.py  --num_classes [33,66] --num_epochs --lr --lr_decay --unfreeze |              | Header 1        | Header 2                       || Header 3                       ||
-|              | Subheader 1     | Subheader 2.1  | Subheader 2.2  | Subheader 3.1  | Subheader 3.2  |
-|==============|-----------------|----------------|----------------|----------------|----------------|
-| Row Header 1 | 3row, 3col span                                 ||| Colspan only                   ||
-| Row Header 2 |       ^                                         ||| Rowspan only   | Cell           |
-| Row Header 3 |       ^                                         |||       ^        | Cell           |
-| Row Header 4 |  Row            |  Each cell     |:   Centered   :| Right-aligned :|: Left-aligned  |
-:              :  with multiple  :  has room for  :   multi-line   :    multi-line  :  multi-line    :
-:              :  lines.         :  more text.    :      text.     :         text.  :  text.         :
-|--------------|-----------------|----------------|----------------|----------------|----------------|
+python train.py  --num_classes [33,66] --num_epochs --lr --lr_decay --unfreeze 
 
 --train_data --valid_data --input_size [224,196,160,128,96] 
 
@@ -53,6 +44,7 @@ network input: 244 * 244
 |1|one mode for three vector|3.767|3.375|3.732|11.195|
 |2|one model for three vector with constraints|3.109|3.184|3.187|11.233|
 
+<br>
 
 ## asda
 | One    | Two | Three | Four    | Five  | Six 
