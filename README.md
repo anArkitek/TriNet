@@ -44,7 +44,7 @@ network input: 244 * 244
 |#|Experiment|front vector error(training)|right vector error(training)|up vector error(training)|validation error(total)|
 | :--- | :----: | ----: |----: |----: |----: |
 |1|one model for three vectors|3.767|3.375|3.732|11.195|
-|2|one model for three vectors with constraints|2.450|2.395|2.415|8.327|
+|2|one model for three vectors with constraints(\alpha = 0.1)|2.450|2.395|2.415|8.327|
 
 <br>
 
