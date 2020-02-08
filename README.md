@@ -29,11 +29,11 @@ python test_on_img.py --img --snapshot
 python video_demo.py --video --snapshot
 
 ## Video demo
-[video](https://www.youtube.com/watch?v=kYeEM_WB_DI)
+[video](https://www.youtube.com/watch?v=BvXT__mZwwM)
 
 ## Dataset
-Training size: 10075 <br>
-Validation size: 1120 <br>
+Training size: 14728 <br>
+Validation size: 1646 <br>
 <br>
 raw video: 1280 * 720    40FPS
 processed image(remove distortion): 960 * 720
