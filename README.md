@@ -41,7 +41,7 @@ processed image(remove distortion): 960 * 720
 network input: 244 * 244
 
 ## One model for all(degree error)
-|#|Experiment|front vector loss(training)|right vector loss(training)|up vector loss(training)|validation loss(total)|
+|#|Experiment|front vector error(training)|right vector error(training)|up vector error(training)|validation error(total)|
 | :--- | :----: | ----: |----: |----: |----: |
 |1|one model for three vectors|3.767|3.375|3.732|11.195|
 |2|one model for three vectors with constraints|2.450|2.395|2.415|8.327|
