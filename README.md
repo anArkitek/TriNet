@@ -47,8 +47,9 @@ network input: 244 * 244
 <br>
 
 ## asda
-| One    | Two | Three | Four    | Five  | Six 
-| -
-| Span <td colspan=3>triple  <td colspan=2>double
+|#|Experiment|front vector loss(training)|right vector loss(training)|up vector loss(training)|validation loss|
+| :--- | :----: | ----: |----: |----: |----: |
+|1|one mode for three vector|3.767|3.375|3.732|11.195|
+|2|one model for three vector with constraints|3.109|3.184|3.187|11.233|
 
 
