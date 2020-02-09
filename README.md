@@ -57,12 +57,12 @@ network input: 244 * 244
 |3|one model for three vectors with constraints(a = 0.075)|0.229|0.226|0.226|
 
 ## Pareto Plot on angle errors
-<img src="https://github.com/chuzcjoe/TriNet/raw/master/imgs/front_error.png" width="600">
-<img src="https://github.com/chuzcjoe/TriNet/raw/master/imgs/right_error.png" width="600">
-<img src="https://github.com/chuzcjoe/TriNet/raw/master/imgs/up_error.png" width="600">
+<img src="https://github.com/chuzcjoe/TriNet/raw/master/imgs/front_error.png" width="500">
+<img src="https://github.com/chuzcjoe/TriNet/raw/master/imgs/right_error.png" width="500">
+<img src="https://github.com/chuzcjoe/TriNet/raw/master/imgs/up_error.png" width="500">
 
 ### Scatter plot on Euler-angle error
-<img src="https://github.com/chuzcjoe/TriNet/raw/master/imgs/EulerAngleError.png" width = 600>
+<img src="https://github.com/chuzcjoe/TriNet/raw/master/imgs/EulerAngleError.png" width = 900>
 
 ## Test
 ### Video test demo(no tracker)
