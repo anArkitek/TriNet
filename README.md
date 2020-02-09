@@ -45,6 +45,7 @@ network input: 244 * 244
 | :--- | :----: | ----: |----: |----: |----: |
 |1|one model for three vectors|3.767|3.375|3.732|11.195|
 |2|one model for three vectors with constraints(a = 0.1)|2.450|2.395|2.415|8.327|
+|3|one model for three vectors with constraints(a = 0.075)|2.242|2.401|2.462|7.319|
 
 <br>
 
@@ -53,6 +54,7 @@ network input: 244 * 244
 | :--- | :----: | ----: |----: |----: |
 |1|one model for three vectors|0.232|0.230|0.231|
 |2|one model for three vectors with constraints(a = 0.1)|0.230|0.228|0.227|
+|3|one model for three vectors with constraints(a = 0.075)|0.229|0.226|0.226|
 
 ## Pareto Plot on angle errors
 <img src="https://github.com/chuzcjoe/TriNet/raw/master/imgs/front_error.png" width="600">
