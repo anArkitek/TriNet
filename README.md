@@ -62,7 +62,7 @@ network input: 244 * 244
 <img src="https://github.com/chuzcjoe/TriNet/raw/master/imgs/up_error.png" width="500">
 
 ### Scatter plot on Euler-angle error
-<img src="https://github.com/chuzcjoe/TriNet/raw/master/imgs/EulerAngleError.png" width = 900>
+<img src="https://github.com/chuzcjoe/TriNet/raw/master/imgs/EulerAngleError.png" width = 1200>
 
 ## Test
 ### Video test demo(no tracker)
