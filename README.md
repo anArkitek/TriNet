@@ -36,6 +36,7 @@ Training size: 14728 <br>
 Validation size: 1646 <br>
 <br>
 raw video: 1280 * 720    40FPS
+<br>
 processed image(remove distortion): 960 * 720
 
 network input: 244 * 244
