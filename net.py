@@ -183,4 +183,56 @@ class VGG19(nn.Module):
         y_v3 = self.fc_y3(x)
         z_v3 = self.fc_z3(x)
 
-        return x_v1, y_v1, z_v1, x_v2, y_v2, z_v2, x_v3, y_v3, z_v3       
+        return x_v1, y_v1, z_v1, x_v2, y_v2, z_v2, x_v3, y_v3, z_v3
+
+"""
+    Implementation of Pose Estimation with Resnet
+"""
+class resnet(nn.Module):
+    def __init__(self, block, num_classes):
+        super(resnet, self).__init__()
+        self.block = block
+        self.resnet_output = 1000
+        
+        
+        # building classifier
+        self.fc_x1 = nn.Linear(self.resnet_output, num_classes)
+        self.fc_y1 = nn.Linear(self.resnet_output, num_classes)
+        self.fc_z1 = nn.Linear(self.resnet_output, num_classes)
+
+        self.fc_x2 = nn.Linear(self.resnet_output, num_classes)
+        self.fc_y2 = nn.Linear(self.resnet_output, num_classes)
+        self.fc_z2 = nn.Linear(self.resnet_output, num_classes)
+
+        self.fc_x3 = nn.Linear(self.resnet_output, num_classes)
+        self.fc_y3 = nn.Linear(self.resnet_output, num_classes)
+        self.fc_z3 = nn.Linear(self.resnet_output, num_classes)
+        
+        # weight initialization
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                continue
+            elif isinstance(m, nn.BatchNorm2d):
+                continue
+            elif isinstance(m, nn.Linear):
+                nn.init.normal_(m.weight, 0, 0.01)
+                nn.init.zeros_(m.bias)
+                
+    
+    def forward(self, x, phase='train'):
+        x = self.block(x)
+        
+        x_v1 = self.fc_x1(x)
+        y_v1 = self.fc_y1(x)
+        z_v1 = self.fc_z1(x)
+
+        x_v2 = self.fc_x2(x)
+        y_v2 = self.fc_y2(x)
+        z_v2 = self.fc_z2(x)
+
+        x_v3 = self.fc_x3(x)
+        y_v3 = self.fc_y3(x)
+        z_v3 = self.fc_z3(x)
+
+        return x_v1, y_v1, z_v1, x_v2, y_v2, z_v2, x_v3, y_v3, z_v3    
+       
