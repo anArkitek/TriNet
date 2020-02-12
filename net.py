@@ -178,7 +178,7 @@ class VGG19(nn.Module):
 """
     Implementation of Pose Estimation with Resnet
 """
-class resnet(nn.Module):
+class Resnet(nn.Module):
     def __init__(self, block, num_classes):
         super(resnet, self).__init__()
         self.block = block
