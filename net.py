@@ -139,8 +139,6 @@ class VGG19(nn.Module):
         features.append(block.classifier)
         
         self.features = nn.Sequential(*features)
-
-        self.avg_pool = nn.AdaptiveAvgPool2d(1)
         
         # building classifier
         self.fc_x1 = nn.Linear(self.vgg_output, num_classes)
@@ -170,7 +168,7 @@ class VGG19(nn.Module):
                 
     def forward(self, x, phase='train'):
         x = self.features(x)
-        x = self.avg_pool(x).view(x.size(0), -1)
+        x = x.view(x.size(0), -1)
         x_v1 = self.fc_x1(x)
         y_v1 = self.fc_y1(x)
         z_v1 = self.fc_z1(x)
@@ -221,7 +219,7 @@ class resnet(nn.Module):
     
     def forward(self, x, phase='train'):
         x = self.block(x)
-        
+        x = x.view(x.size(0), -1)
         x_v1 = self.fc_x1(x)
         y_v1 = self.fc_y1(x)
         z_v1 = self.fc_z1(x)
