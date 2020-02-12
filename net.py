@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 """
-    Implementation of Head Pose Estimation with mobileNetV2
+    Implementation of Pose Estimation with mobileNetV2
 """
 import torch.nn as nn
 
@@ -121,3 +121,66 @@ class MobileNetV2(nn.Module):
         z_v3 = self.fc_z3(x)
 
         return x_v1, y_v1, z_v1, x_v2, y_v2, z_v2, x_v3, y_v3, z_v3
+    
+    
+"""
+    Implementation of Head Pose Estimation with mobileNetV2
+"""
+class VGG19(nn.Module):
+    def __init__(self, block, num_classes):
+        super(Vgg19, self).__init__()
+        self.block = block
+        self.vgg_output = 1000
+        self.input = 3
+        
+        features = [ConvBNReLU(3, input_channel, stride=2)]
+        features.append(block.features)
+        features.append(block.avgpool)
+        features.append(block.classifier)
+        
+        self.features = nn.Sequential(*features)
+
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)
+        
+        # building classifier
+        self.fc_x1 = nn.Linear(self.vgg_output, num_classes)
+        self.fc_y1 = nn.Linear(self.vgg_output, num_classes)
+        self.fc_z1 = nn.Linear(self.vgg_output, num_classes)
+
+        self.fc_x2 = nn.Linear(self.vgg_output, num_classes)
+        self.fc_y2 = nn.Linear(self.vgg_output, num_classes)
+        self.fc_z2 = nn.Linear(self.vgg_output, num_classes)
+
+        self.fc_x3 = nn.Linear(self.vgg_output, num_classes)
+        self.fc_y3 = nn.Linear(self.vgg_output, num_classes)
+        self.fc_z3 = nn.Linear(self.vgg_output, num_classes)
+        
+        # weight initialization
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight, mode='fan_out')
+                if m.bias is not None:
+                    nn.init.zeros_(m.bias)
+            elif isinstance(m, nn.BatchNorm2d):
+                nn.init.ones_(m.weight)
+                nn.init.zeros_(m.bias)
+            elif isinstance(m, nn.Linear):
+                nn.init.normal_(m.weight, 0, 0.01)
+                nn.init.zeros_(m.bias)
+                
+    def forward(self, x, phase='train'):
+        x = self.features(x)
+        x = self.avg_pool(x).view(x.size(0), -1)
+        x_v1 = self.fc_x1(x)
+        y_v1 = self.fc_y1(x)
+        z_v1 = self.fc_z1(x)
+
+        x_v2 = self.fc_x2(x)
+        y_v2 = self.fc_y2(x)
+        z_v2 = self.fc_z2(x)
+
+        x_v3 = self.fc_x3(x)
+        y_v3 = self.fc_y3(x)
+        z_v3 = self.fc_z3(x)
+
+        return x_v1, y_v1, z_v1, x_v2, y_v2, z_v2, x_v3, y_v3, z_v3       
