@@ -150,7 +150,7 @@ class VGG(nn.Module):
             nn.Linear(4096, 1000),
         )
         
-        self.last_channel = 4096
+        self.last_channel = 1000
         
         # building classifier
         self.fc_x1 = nn.Linear(self.last_channel, num_classes)
