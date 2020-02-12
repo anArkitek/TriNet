@@ -11,7 +11,7 @@ import torch.nn as nn
 import torch.utils.model_zoo as model_zoo
 from log import Logger
 from dataset import loadData
-from net import MobileNetV2, VGG19
+from net import MobileNetV2, vgg19_bn, resnet50
 from tensorboardX import SummaryWriter
 from torchvision.models.mobilenet import model_urls
 
@@ -51,7 +51,7 @@ def parse_args():
 
 def get_non_ignored_params(model):
     # Generator function that yields params that will be optimized.
-    b = [model.features, model.avgpool, model.classifier]
+    b = [model.features, model.classifier]
     #print(b)
     for i in range(len(b)):
         for module_name, module in b[i].named_modules():
@@ -76,13 +76,14 @@ def valid(model, valid_loader, softmax):
         degrees_error_r = 0.
         degrees_error_u = 0.
         count = 0.
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         #for j, (valid_img, cls_label, vector_label, _,) in enumerate(valid_loader):
         for j, (valid_img, cls_label_f, cls_label_r, cls_label_u, vector_label_f, vector_label_r, vector_label_u, _) in enumerate(valid_loader):
-            valid_img = valid_img.cuda(0)
+            valid_img = valid_img.to(device)
 
-            vector_label_f = vector_label_f.cuda(0)
-            vector_label_r = vector_label_r.cuda(0)
-            vector_label_u = vector_label_u.cuda(0)
+            vector_label_f = vector_label_f.to(device)
+            vector_label_r = vector_label_r.to(device)
+            vector_label_u = vector_label_u.to(device)
 
             # get x,y,z cls predictions
             #x_cls_pred, y_cls_pred, z_cls_pred = model(valid_img)
@@ -114,7 +115,17 @@ def train():
     :return:
     """
     # create model
-    model = VGG19(torchvision.models.vgg19_bn(pretrained=False), num_classes=args.num_classes)
+    model = vgg19_bn()
+
+    if torch.cuda.device_count() > 1:
+        model = nn.DataParallel(model)
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    model = model.to(device)
+
+    num_params = sum(p.numel() for p in net.parameters() if p.requires_grad)
+    print('The number of parameters of model is', num_params)
 
     # loading pre trained weight
     #logger.logger.info("Loading PreTrained Weight".center(100, '='))
@@ -126,10 +137,10 @@ def train():
     print()
 
     # initialize loss function
-    cls_criterion = nn.BCEWithLogitsLoss().cuda(0)
-    reg_criterion = nn.MSELoss().cuda(0)
-    softmax = nn.Softmax(dim=1).cuda(0)
-    model.cuda(0)
+    cls_criterion = nn.BCEWithLogitsLoss()
+    reg_criterion = nn.MSELoss()
+    softmax = nn.Softmax(dim=1)
+    #model.to(device)
 
     # training
     logger.logger.info("Training".center(100, '='))
@@ -150,17 +161,16 @@ def train():
         min_degree_error = 180.
         for i, (images, cls_label_f, cls_label_r, cls_label_u, vector_label_f, vector_label_r, vector_label_u, name) in enumerate(train_data_loader):
             step += 1
-            images = images.cuda(0)
+            images = images.to(device)
             #classify_label = classify_label.cuda(0)
             #vector_label = vector_label.cuda(0)
-            cls_label_f = cls_label_f.cuda(0)
-            cls_label_r = cls_label_r.cuda(0)
-            cls_label_u = cls_label_u.cuda(0)
+            cls_label_f = cls_label_f.to(device)
+            cls_label_r = cls_label_r.to(device)
+            cls_label_u = cls_label_u.to(device)
 
-            vector_label_f = vector_label_f.cuda(0)
-            vector_label_r = vector_label_r.cuda(0)
-            vector_label_u = vector_label_u.cuda(0)
-
+            vector_label_f = vector_label_f.to(device)
+            vector_label_r = vector_label_r.to(device)
+            vector_label_u = vector_label_u.to(device)
             # inference
             x_cls_pred_f, y_cls_pred_f, z_cls_pred_f,x_cls_pred_r, y_cls_pred_r, z_cls_pred_r,x_cls_pred_u, y_cls_pred_u, z_cls_pred_u = model(images)
 
@@ -172,7 +182,7 @@ def train():
 
             #print(loss)
             # backward
-            grad = [torch.tensor(1.0).cuda(0) for _ in range(12)]
+            grad = [torch.tensor(1.0).to(device) for _ in range(12)]
             optimizer.zero_grad()
             torch.autograd.backward(loss, grad)
             optimizer.step()
