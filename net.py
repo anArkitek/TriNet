@@ -131,14 +131,6 @@ class VGG19(nn.Module):
         super(Vgg19, self).__init__()
         self.block = block
         self.vgg_output = 1000
-        self.input = 3
-        
-        features = [ConvBNReLU(3, input_channel, stride=2)]
-        features.append(block.features)
-        features.append(block.avgpool)
-        features.append(block.classifier)
-        
-        self.features = nn.Sequential(*features)
         
         # building classifier
         self.fc_x1 = nn.Linear(self.vgg_output, num_classes)
@@ -167,7 +159,7 @@ class VGG19(nn.Module):
                 nn.init.zeros_(m.bias)
                 
     def forward(self, x, phase='train'):
-        x = self.features(x)
+        x = self.block(x)
         x = x.view(x.size(0), -1)
         x_v1 = self.fc_x1(x)
         y_v1 = self.fc_y1(x)
