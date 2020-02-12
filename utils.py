@@ -14,6 +14,29 @@ from math import cos, sin
 from mpl_toolkits.mplot3d.axes3d import Axes3D
 #from rotation import Rotation as R
 
+def rpy2RotationMatrix(rx, ry, rz):
+    R_x = np.array([[1.0, 0.0, 0.0],
+                    [0.0, np.cos(rx), np.sin(rx)],
+                    [0.0, -np.sin(rx), np.cos(rx)]])
+
+    R_y = np.array([[np.cos(ry), 0.0, -np.sin(ry)],
+                    [0.0, 1.0, 0.0],
+                    [np.sin(ry), 0.0, np.cos(ry)]])
+
+    R_z = np.array([[np.cos(rz), -np.sin(rz), 0.0],
+                    [np.sin(rz), np.cos(rz), 0.0],
+                    [0.0, 0.0, 1.0]])
+    
+    T = R_z @ R_y @ R_x
+    return T
+
+
+def rpy2Vectors(rx, ry, rz):
+    T = rpy2RotationMatrix(rx, ry, rz)
+    f_vec = T @ np.array([1, 0, 0])
+    r_vec = T @ np.array([0, 1, 0])
+    u_vec = T @ np.array([0, 0, 1])
+    return f_vec, r_vec, u_vec
 
 def mkdir(dir_path):
     """
